@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Behavioral Audit</title>
+</head>
+<body>
+
+  <h1>Behavioral Audit</h1>
+
+  <input id="habitInput" placeholder="Enter habit">
+  <button onclick="addHabit()">Add</button>
+
+  <ul id="habitList"></ul>
+
+  <script>
+    function addHabit() {
+      const input = document.getElementById("habitInput");
+      const list = document.getElementById("habitList");
+
+      const li = document.createElement("li");
+      li.textContent = input.value;
+
+      list.appendChild(li);
+      input.value = "";
+    }
+  </script>
+
+</body>
+</html>
