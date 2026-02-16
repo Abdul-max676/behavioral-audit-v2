@@ -31,8 +31,9 @@
     habits.forEach((habit, index) => {
       const li = document.createElement("li");
 
-      const total = habit.history.length;
-      const completed = habit.history.filter(h => h.done).length;
+      const history = habit.history || [];
+      const total = history.length;
+      const completed = history.filter(h => h.done).length;
       const missed = total - completed;
 
       li.innerHTML = `
