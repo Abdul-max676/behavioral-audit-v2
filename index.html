@@ -157,6 +157,26 @@
   }
     
   function renderHabits() {
+  const list = document.getElementById("habitList");
+  list.innerHTML = "";
+
+  habits.forEach((habit, index) => {
+    const li = document.createElement("li");
+
+    const history = habit.history || [];
+    const streak = calculateStreak(history);
+    const total = history.length;
+    const completed = history.filter(h => h.done).length;
+    const missed = total - completed;
+
+    li.innerHTML = `
+      <strong>${habit.name}</strong>
+      <div class="stats">
+        Completed: ${completed} | Missed: ${missed}<br>
+        Current Streak: ${streak.current} | Longest: ${streak.longest}
+      </div>
+    `;
+
     const completeBtn = document.createElement("button");
     completeBtn.textContent = "Mark Complete";
     completeBtn.onclick = () => markHabit(index, true);
@@ -168,10 +188,10 @@
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Delete";
     deleteBtn.onclick = () => {
-    habits.splice(index, 1);
-    saveHabits();
-    renderHabits();
-      };
+      habits.splice(index, 1);
+      saveHabits();
+      renderHabits();
+    };
 
     const buttonGroup = document.createElement("div");
     buttonGroup.className = "habit-buttons";
@@ -182,6 +202,7 @@
 
     li.appendChild(buttonGroup);
 
+    list.appendChild(li);
     });
   }
 
