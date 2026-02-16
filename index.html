@@ -20,24 +20,46 @@
     localStorage.setItem("habits", JSON.stringify(habits));
   }
 
+  function todayString() {
+    return new Date().toISOString().split("T")[0];
+  }
+
   function renderHabits() {
     const list = document.getElementById("habitList");
     list.innerHTML = "";
 
     habits.forEach((habit, index) => {
       const li = document.createElement("li");
-      li.textContent = habit;
+
+      const total = habit.history.length;
+      const completed = habit.history.filter(h => h.done).length;
+      const missed = total - completed;
+
+      li.innerHTML = `
+        <strong>${habit.name}</strong><br>
+        Completed: ${completed} | Missed: ${missed}<br>
+      `;
+
+      const completeBtn = document.createElement("button");
+      completeBtn.textContent = "Mark Complete";
+      completeBtn.onclick = () => markHabit(index, true);
+
+      const missBtn = document.createElement("button");
+      missBtn.textContent = "Mark Missed";
+      missBtn.onclick = () => markHabit(index, false);
 
       const deleteBtn = document.createElement("button");
       deleteBtn.textContent = "Delete";
-      deleteBtn.style.marginLeft = "10px";
       deleteBtn.onclick = () => {
         habits.splice(index, 1);
         saveHabits();
         renderHabits();
       };
 
+      li.appendChild(completeBtn);
+      li.appendChild(missBtn);
       li.appendChild(deleteBtn);
+
       list.appendChild(li);
     });
   }
@@ -45,14 +67,36 @@
   function addHabit() {
     const input = document.getElementById("habitInput");
     const value = input.value.trim();
-
     if (!value) return;
 
-    habits.push(value);
+    habits.push({
+      name: value,
+      history: []
+    });
+
     saveHabits();
     renderHabits();
-
     input.value = "";
+  }
+
+  function markHabit(index, doneStatus) {
+    const today = todayString();
+    const habit = habits[index];
+
+    // Prevent double logging for same day
+    const alreadyLogged = habit.history.find(h => h.date === today);
+    if (alreadyLogged) {
+      alert("Already logged for today.");
+      return;
+    }
+
+    habit.history.push({
+      date: today,
+      done: doneStatus
+    });
+
+    saveHabits();
+    renderHabits();
   }
 
   renderHabits();
