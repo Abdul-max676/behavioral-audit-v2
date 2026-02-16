@@ -24,6 +24,34 @@
     return new Date().toISOString().split("T")[0];
   }
 
+  function calculateStreak(history) {
+  if (!history || history.length === 0) {
+    return { current: 0, longest: 0 };
+  }
+
+  // Sort by date ascending
+  const sorted = [...history].sort((a, b) => 
+    new Date(a.date) - new Date(b.date)
+  );
+
+  let currentStreak = 0;
+  let longestStreak = 0;
+  let tempStreak = 0;
+
+  for (let i = 0; i < sorted.length; i++) {
+    if (sorted[i].done) {
+      tempStreak++;
+      longestStreak = Math.max(longestStreak, tempStreak);
+    } else {
+      tempStreak = 0;
+    }
+  }
+
+  currentStreak = tempStreak;
+
+  return { current: currentStreak, longest: longestStreak };
+  }
+    
   function renderHabits() {
     const list = document.getElementById("habitList");
     list.innerHTML = "";
@@ -32,13 +60,15 @@
       const li = document.createElement("li");
 
       const history = habit.history || [];
+      const streak = calculateStreak(history);
       const total = history.length;
       const completed = history.filter(h => h.done).length;
       const missed = total - completed;
 
       li.innerHTML = `
-        <strong>${habit.name}</strong><br>
-        Completed: ${completed} | Missed: ${missed}<br>
+      <strong>${habit.name}</strong><br>
+      Completed: ${completed} | Missed: ${missed}<br>
+      Current Streak: ${streak.current} | Longest: ${streak.longest}<br>
       `;
 
       const completeBtn = document.createElement("button");
