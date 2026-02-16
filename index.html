@@ -2,68 +2,106 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Behavioral Audit</title>
   <style>
+  * {
+    box-sizing: border-box;
+  }
+
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #f7f7f7;
+    background: #f4f4f4;
     color: #111;
-    max-width: 600px;
-    margin: 60px auto;
-    padding: 0 20px;
+    margin: 0;
+    padding: 30px 16px;
   }
 
   h1 {
     font-weight: 600;
-    font-size: 28px;
-    margin-bottom: 30px;
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  /* Input row */
+  .input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 25px;
   }
 
   input {
-    padding: 10px;
-    width: 70%;
+    flex: 1;
+    padding: 12px;
     border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
+    border-radius: 8px;
+    font-size: 16px;
   }
 
   button {
-    padding: 10px 14px;
+    padding: 12px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     background: #111;
     color: white;
+    font-size: 14px;
     cursor: pointer;
-    font-size: 13px;
   }
 
-  button:hover {
-    opacity: 0.85;
+  button:active {
+    opacity: 0.8;
   }
 
   ul {
     list-style: none;
     padding: 0;
-    margin-top: 30px;
+    margin: 0;
   }
 
   li {
     background: white;
     padding: 16px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
   }
 
-  li button {
-    margin-right: 8px;
-    margin-top: 8px;
+  li strong {
+    font-size: 16px;
+  }
+
+  .stats {
+    font-size: 13px;
+    margin: 8px 0 12px;
+    color: #555;
+  }
+
+  .habit-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .habit-buttons button {
+    flex: 1;
     background: #eaeaea;
     color: #111;
   }
 
-  li button:hover {
-    background: #ddd;
+  .habit-buttons button:first-child {
+    background: #111;
+    color: white;
+  }
+
+  .habit-buttons button:last-child {
+    background: #dcdcdc;
+  }
+
+  @media (min-width: 600px) {
+    body {
+      max-width: 600px;
+      margin: 60px auto;
+    }
   }
 </style>
 </head>
@@ -71,8 +109,11 @@
 
   <h1>Behavioral Audit</h1>
 
+  <div class="input-row">
   <input id="habitInput" placeholder="Enter habit">
   <button onclick="addHabit()">Add</button>
+  </div>
+
 
   <ul id="habitList"></ul>
 
@@ -116,45 +157,31 @@
   }
     
   function renderHabits() {
-    const list = document.getElementById("habitList");
-    list.innerHTML = "";
+    const completeBtn = document.createElement("button");
+    completeBtn.textContent = "Mark Complete";
+    completeBtn.onclick = () => markHabit(index, true);
 
-    habits.forEach((habit, index) => {
-      const li = document.createElement("li");
+    const missBtn = document.createElement("button");
+    missBtn.textContent = "Mark Missed";
+    missBtn.onclick = () => markHabit(index, false);
 
-      const history = habit.history || [];
-      const streak = calculateStreak(history);
-      const total = history.length;
-      const completed = history.filter(h => h.done).length;
-      const missed = total - completed;
-
-      li.innerHTML = `
-      <strong>${habit.name}</strong><br>
-      Completed: ${completed} | Missed: ${missed}<br>
-      Current Streak: ${streak.current} | Longest: ${streak.longest}<br>
-      `;
-
-      const completeBtn = document.createElement("button");
-      completeBtn.textContent = "Mark Complete";
-      completeBtn.onclick = () => markHabit(index, true);
-
-      const missBtn = document.createElement("button");
-      missBtn.textContent = "Mark Missed";
-      missBtn.onclick = () => markHabit(index, false);
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.textContent = "Delete";
-      deleteBtn.onclick = () => {
-        habits.splice(index, 1);
-        saveHabits();
-        renderHabits();
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "Delete";
+    deleteBtn.onclick = () => {
+    habits.splice(index, 1);
+    saveHabits();
+    renderHabits();
       };
 
-      li.appendChild(completeBtn);
-      li.appendChild(missBtn);
-      li.appendChild(deleteBtn);
+    const buttonGroup = document.createElement("div");
+    buttonGroup.className = "habit-buttons";
 
-      list.appendChild(li);
+    buttonGroup.appendChild(completeBtn);
+    buttonGroup.appendChild(missBtn);
+    buttonGroup.appendChild(deleteBtn);
+
+    li.appendChild(buttonGroup);
+
     });
   }
 
