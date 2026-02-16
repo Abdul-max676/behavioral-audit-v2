@@ -14,17 +14,49 @@
   <ul id="habitList"></ul>
 
   <script>
-    function addHabit() {
-      const input = document.getElementById("habitInput");
-      const list = document.getElementById("habitList");
+  let habits = JSON.parse(localStorage.getItem("habits")) || [];
 
+  function saveHabits() {
+    localStorage.setItem("habits", JSON.stringify(habits));
+  }
+
+  function renderHabits() {
+    const list = document.getElementById("habitList");
+    list.innerHTML = "";
+
+    habits.forEach((habit, index) => {
       const li = document.createElement("li");
-      li.textContent = input.value;
+      li.textContent = habit;
 
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "Delete";
+      deleteBtn.style.marginLeft = "10px";
+      deleteBtn.onclick = () => {
+        habits.splice(index, 1);
+        saveHabits();
+        renderHabits();
+      };
+
+      li.appendChild(deleteBtn);
       list.appendChild(li);
-      input.value = "";
-    }
-  </script>
+    });
+  }
+
+  function addHabit() {
+    const input = document.getElementById("habitInput");
+    const value = input.value.trim();
+
+    if (!value) return;
+
+    habits.push(value);
+    saveHabits();
+    renderHabits();
+
+    input.value = "";
+  }
+
+  renderHabits();
+</script>
 
 </body>
 </html>
