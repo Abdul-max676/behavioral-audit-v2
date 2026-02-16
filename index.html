@@ -226,7 +226,8 @@
     const habit = habits[index];
 
     // Prevent double logging for same day
-    const alreadyLogged = habit.history.find(h => h.date === today);
+    const history = habit.history || [];
+    const alreadyLogged = history.find(h => h.date === today);
     if (alreadyLogged) {
       alert("Already logged for today.");
       return;
