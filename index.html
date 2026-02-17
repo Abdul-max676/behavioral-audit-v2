@@ -108,6 +108,7 @@
 <body>
 
   <h1>Behavioral Audit</h1>
+  <p id="dailyMessage"></p>
 
   <div class="input-row">
   <input id="habitInput" placeholder="Enter habit">
@@ -133,9 +134,9 @@
     return { current: 0, longest: 0 };
   }
 
-  // Sort by date ascending
-  const sorted = [...history].sort((a, b) => 
-    new Date(a.date) - new Date(b.date)
+  // Sort newest first
+  const sorted = [...history].sort((a, b) =>
+    new Date(b.date) - new Date(a.date)
   );
 
   let currentStreak = 0;
@@ -143,26 +144,91 @@
   let tempStreak = 0;
 
   for (let i = 0; i < sorted.length; i++) {
-    if (sorted[i].done) {
-      tempStreak++;
-      longestStreak = Math.max(longestStreak, tempStreak);
-    } else {
+    if (!sorted[i].done) {
       tempStreak = 0;
+      continue;
+    }
+
+    tempStreak++;
+
+    // Check if next entry is exactly 1 day older
+    if (sorted[i + 1]) {
+      const currentDate = new Date(sorted[i].date);
+      const nextDate = new Date(sorted[i + 1].date);
+
+      const diff =
+        (currentDate - nextDate) / (1000 * 60 * 60 * 24);
+
+      if (diff !== 1) {
+        longestStreak = Math.max(longestStreak, tempStreak);
+        tempStreak = 0;
+      }
     }
   }
 
-  currentStreak = tempStreak;
+  longestStreak = Math.max(longestStreak, tempStreak);
+
+  // Now calculate CURRENT streak (from today backwards)
+  const today = todayString();
+  const todayEntry = sorted.find(h => h.date === today);
+
+  if (!todayEntry || !todayEntry.done) {
+    currentStreak = 0;
+  } else {
+    currentStreak = 1;
+    let prevDate = new Date(today);
+
+    for (let i = 1; i < sorted.length; i++) {
+      const entryDate = new Date(sorted[i].date);
+      const diff =
+        (prevDate - entryDate) / (1000 * 60 * 60 * 24);
+
+      if (diff === 1 && sorted[i].done) {
+        currentStreak++;
+        prevDate = entryDate;
+      } else {
+        break;
+      }
+    }
+  }
 
   return { current: currentStreak, longest: longestStreak };
+}
+
+  function updateDailyMessage() {
+  const messageEl = document.getElementById("dailyMessage");
+
+  const totalHabits = habits.length;
+  const today = todayString();
+
+  const completedToday = habits.filter(h => {
+    const entry = (h.history || []).find(e => e.date === today);
+    return entry && entry.done;
+  }).length;
+
+  if (totalHabits === 0) {
+    messageEl.textContent = "No habits. No standards. Interesting.";
+  } 
+  else if (completedToday === totalHabits) {
+    messageEl.textContent = "You did everything. Rare discipline.";
+  } 
+  else if (completedToday === 0) {
+    messageEl.textContent = "Zero progress today. That’s a choice.";
+  } 
+  else {
+    messageEl.textContent = 
+      `${completedToday}/${totalHabits} done. You can do better.`;
   }
+}
+
     
   function renderHabits() {
   const list = document.getElementById("habitList");
   list.innerHTML = "";
 
   habits.forEach((habit, index) => {
+    autoMissIfSkipped(habit);
     const li = document.createElement("li");
-
     const history = habit.history || [];
     const streak = calculateStreak(history);
     const total = history.length;
@@ -201,10 +267,34 @@
     buttonGroup.appendChild(deleteBtn);
 
     li.appendChild(buttonGroup);
-
+    
     list.appendChild(li);
     });
+    updateDailyMessage();
   }
+
+  function autoMissIfSkipped(habit) {
+  const history = habit.history || [];
+  if (history.length === 0) return;
+
+  const sorted = [...history].sort((a, b) =>
+    new Date(b.date) - new Date(a.date)
+  );
+
+  const lastDate = new Date(sorted[0].date);
+  const today = new Date(todayString());
+
+  const diff =
+    (today - lastDate) / (1000 * 60 * 60 * 24);
+
+  if (diff > 1) {
+    habit.history.push({
+      date: todayString(),
+      done: false
+    });
+  }
+}
+
 
   function addHabit() {
     const input = document.getElementById("habitInput");
