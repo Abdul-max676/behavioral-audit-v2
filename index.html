@@ -221,22 +221,10 @@
   }
 }
 
-  let overrideDate = null;
-
-function todayString() {
-  if (overrideDate) return overrideDate;
-  return new Date().toISOString().split("T")[0];
+  window.debugSetDate = function(date) {
+  todayString = () => date;
+  renderHabits();
 }
-
-window.debugSetDate = function(date) {
-  overrideDate = date;
-  renderHabits();
-};
-
-window.debugResetDate = function() {
-  overrideDate = null;
-  renderHabits();
-};
   
     
   function renderHabits() {
