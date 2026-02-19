@@ -110,6 +110,7 @@
   <h1>Behavioral Audit</h1>
   <p id="dailyMessage"></p>
   <div id="weeklySummary"></div>
+  <div id="disciplineScore"></div>           
   <div class="input-row">
   <input id="habitInput" placeholder="Enter habit">
   <button onclick="addHabit()">Add</button>
@@ -243,6 +244,22 @@
   return { start: sunday, end: saturday };
 }
 
+  function calculateDisciplineScore() {
+  let totalCompletions = 0;
+  let totalLogs = 0;
+
+  habits.forEach(habit => {
+    const history = habit.history || [];
+    totalLogs += history.length;
+    totalCompletions += history.filter(h => h.done).length;
+  });
+
+  if (totalLogs === 0) return 0;
+
+  return Math.round((totalCompletions / totalLogs) * 100);
+}
+
+    
     
   function renderHabits() {
   const list = document.getElementById("habitList");
@@ -294,8 +311,31 @@
     });
     updateDailyMessage();
     updateWeeklySummary();
+    updateDisciplineScore();
   }
 
+  function updateDisciplineScore() {
+  const scoreEl = document.getElementById("disciplineScore");
+  const score = calculateDisciplineScore();
+
+  let label = "";
+
+  if (score >= 85) label = "Elite consistency.";
+  else if (score >= 70) label = "Solid discipline.";
+  else if (score >= 50) label = "Unreliable effort.";
+  else if (score > 0) label = "Chaotic behavior.";
+  else label = "No data.";
+
+  scoreEl.innerHTML = `
+    <div class="stats">
+      <strong>Discipline Score</strong><br>
+      ${score}%<br>
+      ${label}
+    </div>
+  `;
+}
+
+    
   function getWeeklySummary() {
   const { start, end } = getWeekRange();
 
