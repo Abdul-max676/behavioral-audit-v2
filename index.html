@@ -97,6 +97,24 @@
     background: #dcdcdc;
   }
 
+  #heatmap {
+  margin-top: 20px;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: 4px;
+}
+
+.heatmap-day {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 4px;
+  background: #eee;
+}
+
+  
   @media (min-width: 600px) {
     body {
       max-width: 600px;
@@ -110,7 +128,8 @@
   <h1>Behavioral Audit</h1>
   <p id="dailyMessage"></p>
   <div id="weeklySummary"></div>
-  <div id="disciplineScore"></div>           
+  <div id="disciplineScore"></div>
+  <div id="heatmap"></div>
   <div class="input-row">
   <input id="habitInput" placeholder="Enter habit">
   <button onclick="addHabit()">Add</button>
@@ -259,7 +278,35 @@
   return Math.round((totalCompletions / totalLogs) * 100);
 }
 
-    
+  function generateHeatmapData(days = 90) {
+  const data = {};
+
+  habits.forEach(habit => {
+    (habit.history || []).forEach(entry => {
+      if (!data[entry.date]) {
+        data[entry.date] = { done: 0, total: 0 };
+      }
+
+      data[entry.date].total++;
+      if (entry.done) data[entry.date].done++;
+    });
+  });
+
+  const today = new Date(todayString());
+  const result = [];
+
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    const dateStr = date.toISOString().split("T")[0];
+
+    const dayData = data[dateStr] || { done: 0, total: 0 };
+    result.push({ date: dateStr, ...dayData });
+  }
+
+  return result;
+}
+  
     
   function renderHabits() {
   const list = document.getElementById("habitList");
@@ -312,6 +359,8 @@
     updateDailyMessage();
     updateWeeklySummary();
     updateDisciplineScore();
+    updateHeatmap();
+
   }
 
   function updateDisciplineScore() {
@@ -335,6 +384,7 @@
   `;
 }
 
+  
     
   function getWeeklySummary() {
   const { start, end } = getWeekRange();
@@ -379,6 +429,39 @@
   };
 }
 
+
+  function updateHeatmap() {
+  const container = document.getElementById("heatmap");
+  const data = generateHeatmapData();
+
+  container.innerHTML = `
+    <div class="stats"><strong>Consistency Heatmap</strong></div>
+    <div class="heatmap-grid"></div>
+  `;
+
+  const grid = container.querySelector(".heatmap-grid");
+
+  data.forEach(day => {
+    const square = document.createElement("div");
+    square.className = "heatmap-day";
+
+    if (day.total === 0) {
+      square.style.background = "#eee";
+    } else {
+      const rate = day.done / day.total;
+
+      if (rate === 1) square.style.background = "#0f9d58";
+      else if (rate >= 0.5) square.style.background = "#34c759";
+      else if (rate > 0) square.style.background = "#ffcc00";
+      else square.style.background = "#ff3b30";
+    }
+
+    square.title = `${day.date} — ${day.done}/${day.total}`;
+    grid.appendChild(square);
+  });
+}
+
+  
   function updateWeeklySummary() {
   const summaryEl = document.getElementById("weeklySummary");
   const today = new Date(todayString());
