@@ -307,7 +307,7 @@
   habits.forEach(habit => {
     const weekEntries = (habit.history || []).filter(entry => {
       const entryDate = new Date(entry.date);
-      return entryDate >= start && entryDate <= end;
+      entryDate.setHours(0,0,0,0);
     });
 
     const completed = weekEntries.filter(e => e.done).length;
