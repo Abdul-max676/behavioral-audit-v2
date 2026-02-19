@@ -110,7 +110,6 @@
   <h1>Behavioral Audit</h1>
   <p id="dailyMessage"></p>
   <div id="weeklySummary"></div>
-  mklmmjjm,,m09ewq  urgo0i87uyhnujm hnm v nbnmm '?>;,lkm5
   <div class="input-row">
   <input id="habitInput" placeholder="Enter habit">
   <button onclick="addHabit()">Add</button>
@@ -227,6 +226,23 @@
   renderHabits();
 }
 
+  function getWeekRange() {
+  const today = new Date(todayString());
+  const day = today.getDay(); // 0 = Sunday, 6 = Saturday
+
+  // Make Saturday the end of the week
+  const saturday = new Date(today);
+  saturday.setDate(today.getDate() + (6 - day));
+
+  const sunday = new Date(saturday);
+  sunday.setDate(saturday.getDate() - 6);
+
+  sunday.setHours(0,0,0,0);
+  saturday.setHours(23,59,59,999);
+
+  return { start: sunday, end: saturday };
+}
+
     
   function renderHabits() {
   const list = document.getElementById("habitList");
@@ -277,7 +293,73 @@
     list.appendChild(li);
     });
     updateDailyMessage();
+    updateWeeklySummary();
   }
+
+  function getWeeklySummary() {
+  const { start, end } = getWeekRange();
+
+  let totalCompletions = 0;
+  let totalMisses = 0;
+  let bestHabit = null;
+  let bestRate = 0;
+
+  habits.forEach(habit => {
+    const weekEntries = (habit.history || []).filter(entry => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= start && entryDate <= end;
+    });
+
+    const completed = weekEntries.filter(e => e.done).length;
+    const missed = weekEntries.length - completed;
+
+    totalCompletions += completed;
+    totalMisses += missed;
+
+    const possible = weekEntries.length;
+    const rate = possible > 0 ? completed / possible : 0;
+
+    if (rate > bestRate && possible > 0) {
+      bestRate = rate;
+      bestHabit = habit.name;
+    }
+  });
+
+  const totalLogs = totalCompletions + totalMisses;
+  const completionRate =
+    totalLogs > 0
+      ? Math.round((totalCompletions / totalLogs) * 100)
+      : 0;
+
+  return {
+    totalCompletions,
+    totalMisses,
+    completionRate,
+    bestHabit
+  };
+}
+
+  function updateWeeklySummary() {
+  const summaryEl = document.getElementById("weeklySummary");
+  const today = new Date(todayString());
+
+  if (today.getDay() !== 6) {
+    summaryEl.innerHTML = "";
+    return;
+  }
+
+  const summary = getWeeklySummary();
+
+  summaryEl.innerHTML = `
+    <div class="stats">
+      <strong>Weekly Review</strong><br>
+      Total Completions: ${summary.totalCompletions}<br>
+      Total Misses: ${summary.totalMisses}<br>
+      Completion Rate: ${summary.completionRate}%<br>
+      Best Habit: ${summary.bestHabit || "None"}
+    </div>
+  `;
+}
 
     
   function autoMissIfSkipped(habit) {
@@ -309,9 +391,7 @@
   }
 }
 
-
-
-
+    
   function addHabit() {
     const input = document.getElementById("habitInput");
     const value = input.value.trim();
